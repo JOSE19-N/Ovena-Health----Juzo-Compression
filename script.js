@@ -636,7 +636,7 @@ async function processPayment() {
           
           const chargeParams = new URLSearchParams();
           chargeParams.append('amount', amountInCents);
-          chargeParams.append('currency', 'inr');
+          chargeParams.append('currency', 'usd');
           chargeParams.append('source', response.id);
           chargeParams.append('description', `Order for ${shippingData.name} - Ovena Health`);
           chargeParams.append('receipt_email', shippingData.email);
