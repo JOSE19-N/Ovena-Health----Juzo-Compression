@@ -99,7 +99,7 @@ function renderCart() {
   const totalQty = cart.reduce((s, i) => s + i.qty, 0);
   const sum = cart.reduce((s, i) => s + (i.qty * i.price), 0);
   document.getElementById('cdCount').textContent = totalQty + ' item' + (totalQty !== 1 ? 's' : '');
-  document.getElementById('cdTotal').textContent = '₹' + sum.toFixed(2);
+  document.getElementById('cdTotal').textContent = '$' + sum.toFixed(2);
   body.querySelectorAll('.cd-item').forEach(el => el.remove());
   if (cart.length === 0) { empty.style.display = 'flex'; return; }
   empty.style.display = 'none';
