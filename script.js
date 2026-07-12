@@ -113,7 +113,7 @@ function renderCart() {
       <div class="cd-qty-val">${item.qty}</div>
       <button class="cd-qty-btn" onclick="chgQty('${item.key}', 1)">+</button></div>
       <button class="cd-remove" onclick="rmItem('${item.key}')">✕ Remove</button></div>
-      <div class="cd-item-price">₹${(item.price * item.qty).toFixed(2)}</div>`;
+      <div class="cd-item-price">$${(item.price * item.qty).toFixed(2)}</div>`;
     body.appendChild(el);
   });
 }
@@ -167,7 +167,7 @@ function buildOrderSummaryHTML() {
   });
   html += `</div><hr style="margin:12px 0;border:none;border-top:1px dashed var(--n200);">
     <div style="display:flex;justify-content:space-between;font-weight:600;color:var(--n900);">
-      <div>Total</div><div>₹${orderTotal.toFixed(2)}</div></div>`;
+      <div>Total</div><div>$${orderTotal.toFixed(2)}</div></div>`;
   return html;
 }
 
@@ -722,7 +722,7 @@ function finalizeOrder(paymentId, shippingData) {
     'Zip': shippingData.zip,
     'Country': shippingData.country,
     'Payment Method': currentMethod.toUpperCase(),
-    'Total': `₹${orderTotal.toFixed(2)}`,
+    'Total': `$${orderTotal.toFixed(2)}`,
     'Items': cart.map(i => `${i.name} (${i.colour}, Sz ${i.size}) x${i.qty}`).join(' | ')
   };
   
@@ -731,7 +731,7 @@ function finalizeOrder(paymentId, shippingData) {
   const itemsHTML = cart.map(item => `
     <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.85rem;color:var(--n700);border-bottom:1px solid var(--n100);padding-bottom:6px;">
       <span>${item.name} <small>(${item.colour}, Sz ${item.size})</small> × ${item.qty}</span>
-      <span style="font-weight:600;">₹${(item.price * item.qty).toFixed(2)}</span>
+      <span style="font-weight:600;">$${(item.price * item.qty).toFixed(2)}</span>
     </div>`).join('');
   
   document.getElementById('tracking-details').innerHTML = `
@@ -743,7 +743,7 @@ function finalizeOrder(paymentId, shippingData) {
       <p style="font-size:0.75rem;font-weight:600;color:var(--n400);text-transform:uppercase;margin-bottom:8px;">Items</p>
       ${itemsHTML}
       <div style="display:flex;justify-content:space-between;margin-top:10px;font-weight:700;color:var(--n900);">
-        <span>Total</span><span>₹${orderTotal.toFixed(2)}</span>
+        <span>Total</span><span>$${orderTotal.toFixed(2)}</span>
       </div>
     </div>
     <div style="background:var(--n50);padding:12px;border-radius:8px;">
