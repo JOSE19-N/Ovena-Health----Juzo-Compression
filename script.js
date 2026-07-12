@@ -163,7 +163,7 @@ function buildOrderSummaryHTML() {
   cart.forEach(item => {
     html += `<div style="display:flex;justify-content:space-between;margin:4px 0;color:var(--n700);">
       <div>${item.name} <small>(${item.colour}, Size ${item.size})</small> <strong>×${item.qty}</strong></div>
-      <div>₹${(item.price * item.qty).toFixed(2)}</div></div>`;
+      <div>$${(item.price * item.qty).toFixed(2)}</div></div>`;
   });
   html += `</div><hr style="margin:12px 0;border:none;border-top:1px dashed var(--n200);">
     <div style="display:flex;justify-content:space-between;font-weight:600;color:var(--n900);">
