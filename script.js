@@ -142,7 +142,15 @@ function doCheckout() {
   document.getElementById('methodSelection').style.display = 'flex';
   selectMethod('card');
   document.getElementById('shipping-form').style.display = 'block';
-  document.getElementById('main-pay-btn').style.display = 'block';
+  
+  // Ensure button is fully reset every time checkout is opened
+  const btn = document.getElementById('main-pay-btn');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Complete Order ✓';
+    btn.style.display = 'block';
+  }
+  
   document.getElementById('paymentOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   const shipCodeSel = document.getElementById('ship-country-code');
@@ -490,10 +498,16 @@ function loadStripeScript() {
 // ── PROCESS PAYMENT WITH ACTUAL LIVE CHARGES
 async function processPayment() {
   const btn = document.getElementById('main-pay-btn');
-  btn.disabled = true;
-  const originalLabel = btn.textContent;
-  btn.textContent = 'Processing…';
   const errorBox = document.getElementById('shipping-error');
+  
+  // Bulletproof reset function that hardcodes the correct button text
+  const resetBtn = () => {
+    btn.disabled = false;
+    btn.textContent = 'Complete Order ✓';
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Processing…';
   errorBox.style.display = 'none';
   
   const name = document.getElementById('ship-name').value.trim();
@@ -510,8 +524,7 @@ async function processPayment() {
     errorBox.innerText = errorMsg;
     errorBox.style.display = 'block'; 
     showToast('❌ ' + errorMsg);
-    btn.disabled = false; 
-    btn.textContent = originalLabel; 
+    resetBtn();
     return;
   }
   
@@ -526,8 +539,7 @@ async function processPayment() {
     errorBox.innerText = errorMsg;
     errorBox.style.display = 'block';
     isEmailVerified = false;
-    btn.disabled = false; 
-    btn.textContent = originalLabel; 
+    resetBtn();
     return;
   }
   
@@ -539,8 +551,7 @@ async function processPayment() {
     emailStatusEl.textContent = '✗ ' + errorMsg; 
     errorBox.innerText = errorMsg;
     errorBox.style.display = 'block';
-    btn.disabled = false; 
-    btn.textContent = originalLabel; 
+    resetBtn();
     return;
   }
   
@@ -550,8 +561,7 @@ async function processPayment() {
     errorBox.innerText = errorMsg;
     errorBox.style.display = 'block'; 
     showToast('❌ ' + errorMsg);
-    btn.disabled = false; 
-    btn.textContent = originalLabel; 
+    resetBtn();
     return;
   }
   
@@ -562,15 +572,13 @@ async function processPayment() {
     errorBox.innerText = errorMsg;
     errorBox.style.display = 'block'; 
     showToast('❌ ' + errorMsg);
-    btn.disabled = false; 
-    btn.textContent = originalLabel; 
+    resetBtn();
     return;
   }
   
   // 6. Validate Card (if card method)
   if (currentMethod === 'card' && !validateCardFormLocal()) {
-    btn.disabled = false; 
-    btn.textContent = originalLabel; 
+    resetBtn();
     return;
   }
   
@@ -588,8 +596,7 @@ async function processPayment() {
     try {
       if (STRIPE_PUBLISHABLE_KEY === 'pk_test_YOUR_STRIPE_PUBLIC_KEY_HERE') {
         showToast('Please insert your Stripe Keys at the top!');
-        btn.disabled = false;
-        btn.textContent = originalLabel;
+        resetBtn();
         return;
       }
 
@@ -619,8 +626,7 @@ async function processPayment() {
             errorBox.innerText = response.error.message;
             errorBox.style.display = 'block';
             showToast('❌ ' + response.error.message);
-            btn.disabled = false;
-            btn.textContent = originalLabel;
+            resetBtn();
             return;
           }
 
@@ -647,22 +653,18 @@ async function processPayment() {
           const chargeData = await chargeResponse.json();
 
           if (chargeData.error) {
-            // This is where real declines (insufficient funds, expired card, etc.) will show up!
             errorBox.innerText = chargeData.error.message;
             errorBox.style.display = 'block';
             showToast('❌ ' + chargeData.error.message);
-            btn.disabled = false;
-            btn.textContent = originalLabel;
+            resetBtn();
           } else {
-            // Charge succeeded! Money is now logged in your Stripe dashboard!
             finalizeOrder(chargeData.id, shippingData);
           }
         } catch (err) {
           console.error("Charge execution failed:", err);
           errorBox.innerText = "Network error while charging card.";
           errorBox.style.display = 'block';
-          btn.disabled = false;
-          btn.textContent = originalLabel;
+          resetBtn();
         }
       });
       return;
@@ -673,8 +675,7 @@ async function processPayment() {
       errorBox.innerText = errorMsg;
       errorBox.style.display = 'block';
       showToast('❌ ' + errorMsg);
-      btn.disabled = false;
-      btn.textContent = originalLabel;
+      resetBtn();
       return;
     }
   }
@@ -690,13 +691,19 @@ async function processPayment() {
   // COD FALLBACK
   showToast('Processing COD order...');
   await new Promise(r => setTimeout(r, 1500));
-  btn.disabled = false;
-  btn.textContent = originalLabel;
   finalizeOrder('COD_' + Math.random().toString(36).substr(2, 9), shippingData);
 }
 
 function finalizeOrder(paymentId, shippingData) {
   clearInterval(upiTimerInterval);
+  
+  // CRITICAL FIX: Ensure button is fully re-enabled and reset for the next order
+  const btn = document.getElementById('main-pay-btn');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Complete Order ✓';
+  }
+
   ['payment-method-section', 'card-form', 'upi-form', 'cod-form', 'shipping-form', 'main-pay-btn']
     .forEach(id => document.getElementById(id).style.display = 'none');
   
