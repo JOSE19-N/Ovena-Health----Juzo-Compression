@@ -8,7 +8,7 @@ const ABSTRACT_API_KEY = '5a9793d19ff1427b84b27e57b9ac8b5b';
 const STRIPE_PUBLISHABLE_KEY = 'pk_test_51Trih5Gx2eGBdkdG3qXczTeXGcxotPcNHBw4aeWPqnpVat9qSfA2jur7sAa2StsQwK5rTLeAC3iVj5Kyc8evhpMn00fBaveiYU';
 // Note: To create direct charges without a backend, you must also provide your test secret key. 
 // ONLY use this for your sandbox testing or local development!
-const STRIPE_SECRET_KEY = 'pk_test_51Trih5Gx2eGBdkdG3qXczTeXGcxotPcNHBw4aeWPqnpVat9qSfA2jur7sAa2StsQwK5rTLeAC3iVj5Kyc8evhpMn00fBaveiYU'; 
+const STRIPE_SECRET_KEY = 'sk_test_51Trih5Gx2eGBdkdGXFsRDpWDFll6llpOXKcZ19BZ8NqoufqKjngPxfxVpYpF6OhfXCMmlw5wNlGI1iQFYd8NvZMz00WqYzqKZI'; 
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyQW4ASjboEvbWpOVNuxCE3vQhWPQVZnTgmhVVouZW6iiew0o-QEaIcGqXVzTaKhCW3ag/exec';
 
 (function() {
