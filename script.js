@@ -189,11 +189,12 @@ function selectMethod(method) {
 window.selectMethod = selectMethod;
 
 // ════════════ SENDGRID EMAIL SENDER ════════════
+// ════════════ SENDGRID EMAIL SENDER ════════════
 async function sendSendGridOTP(toEmail, otp) {
     const url = "https://api.sendgrid.com/v3/mail/send";
     const payload = {
         personalizations: [{ to: [{ email: toEmail }], subject: "Your Ovena Health Verification Code" }],
-        from: { email: SENDGRID_SENDER_EMAIL, name: "Ovena Health" },
+        from: { email: 'nithinjose.p@rndoptmizar.net', name: "Ovena Health" },
         content: [{
             type: "text/html",
             value: `<div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
@@ -208,7 +209,7 @@ async function sendSendGridOTP(toEmail, otp) {
     const response = await fetch(url, {
         method: 'POST',
         headers: {
-            'Authorization': 'Bearer ' + SENDGRID_API_KEY,
+            'Authorization': 'Bearer ' + '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',
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -221,6 +222,132 @@ async function sendSendGridOTP(toEmail, otp) {
     return true;
 }
 
+// ════════════ OTP TIMER & RESEND LOGIC ════════════
+let otpTimerInterval = null;
+
+function startOTPTimer() {
+    const timerEl = document.getElementById('otp-timer');
+    const countdownEl = document.getElementById('otp-countdown');
+    const resendBtn = document.getElementById('resend-otp-btn');
+    let timeLeft = 60;
+
+    if (resendBtn) resendBtn.disabled = true;
+    if (timerEl) timerEl.style.display = 'inline';
+
+    clearInterval(otpTimerInterval);
+    otpTimerInterval = setInterval(() => {
+        timeLeft--;
+        if (countdownEl) countdownEl.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(otpTimerInterval);
+            if (timerEl) timerEl.style.display = 'none';
+            if (resendBtn) {
+                resendBtn.disabled = false;
+                resendBtn.textContent = 'Resend OTP';
+            }
+        }
+    }, 1000);
+}
+
+async function resendEmailOTP() {
+    const email = document.getElementById('ship-email').value.trim();
+    const statusEl = document.getElementById('email-status');
+    if (!email) return;
+
+    generatedEmailOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    statusEl.textContent = 'Sending new OTP...';
+    statusEl.className = 'zip-status checking';
+
+    try {
+        await sendSendGridOTP(email, generatedEmailOTP);
+        statusEl.textContent = '✓ New OTP sent! Check your inbox.';
+        statusEl.className = 'zip-status ok';
+        showToast('📧 New OTP sent!');
+        startOTPTimer();
+    } catch (err) {
+        console.error('SendGrid Resend Error:', err);
+        statusEl.textContent = ' Failed to resend OTP.';
+        statusEl.style.color = '#e53e3e';
+        showToast('❌ Resend failed.');
+    }
+}
+window.resendEmailOTP = resendEmailOTP;
+
+// ════════════ EMAIL VALIDATION (UPDATED) ════════════
+async function validateEmailFormat() {
+    const email = document.getElementById('ship-email').value.trim();
+    const statusEl = document.getElementById('email-status');
+    
+    if (!email) {
+        statusEl.className = 'zip-status';
+        statusEl.textContent = '';
+        return false;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+        statusEl.className = 'zip-status';
+        statusEl.style.color = '#e53e3e';
+        statusEl.textContent = '✗ Invalid email format';
+        isEmailVerified = false;
+        return false;
+    }
+    
+    const domain = email.split('@')[1].toLowerCase();
+    statusEl.className = 'zip-status checking';
+    statusEl.style.color = '';
+    statusEl.textContent = 'Verifying...';
+    
+    try {
+        const res = await fetch(`https://open.kickbox.com/v1/disposable/${domain}`);
+        const data = await res.json();
+        if (data.disposable) {
+            statusEl.className = 'zip-status';
+            statusEl.style.color = '#e53e3e';
+            statusEl.textContent = '✗ Temporary emails not allowed';
+            isEmailVerified = false;
+            return false;
+        }
+    } catch (err) { }
+    
+    try {
+        const abstractCheck = await verifyEmailViaAbstract(email);
+        if (!abstractCheck.valid) {
+            statusEl.className = 'zip-status';
+            statusEl.style.color = '#e53e3e';
+            statusEl.textContent = `✗ ${abstractCheck.error}`;
+            isEmailVerified = false;
+            return false;
+        }
+    } catch (err) {
+        console.warn('AbstractAPI error:', err);
+    }
+    
+    // All checks passed - generate OTP and SEND VIA EMAIL
+    generatedEmailOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    isEmailVerified = false;
+    document.getElementById('email-otp-group').style.display = 'flex';
+    
+    statusEl.className = 'zip-status checking';
+    statusEl.style.color = '';
+    statusEl.textContent = 'Sending OTP to your email...';
+
+    try {
+        await sendSendGridOTP(email, generatedEmailOTP);
+        statusEl.textContent = '✓ OTP sent! Check your inbox.';
+        statusEl.className = 'zip-status ok';
+        showToast('📧 OTP sent to your email!');
+        startOTPTimer();
+    } catch (err) {
+        console.error('SendGrid API Error:', err);
+        statusEl.textContent = '✗ Failed to send OTP. Check console.';
+        statusEl.style.color = '#e53e3e';
+        showToast('❌ Email delivery failed.');
+    }
+    
+    return true;
+}
 // ════════════ OTP TIMER & RESEND LOGIC ════════════
 function startOTPTimer() {
     const timerEl = document.getElementById('otp-timer');
@@ -376,7 +503,7 @@ function verifyEmailOTP() {
         statusEl.textContent = '✓ Email verified successfully';
         isEmailVerified = true;
         document.getElementById('email-otp-group').style.display = 'none';
-        clearInterval(otpTimerInterval);
+        clearInterval(otpTimerInterval); // Clear timer
         showToast('✅ Email verified!');
         return true;
     } else {
@@ -387,8 +514,6 @@ function verifyEmailOTP() {
         return false;
     }
 }
-window.validateEmailFormat = validateEmailFormat;
-window.verifyEmailOTP = verifyEmailOTP;
 
 // ── PHONE VALIDATION
 function validatePhone() {
